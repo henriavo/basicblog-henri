@@ -17,17 +17,18 @@
 		<form method="post">
 			<label>
 				<div>subject</div>
-				<input type="text" name="subject" >
+				<input type="text" name="subject" value="{{subject}}">
 			</label>
 
 			<label>
 				<div>blog</div>
-				<textarea name="blog"> </textarea>
+				<textarea name="content" value="{{content}}"> </textarea>
 			</label>
 
 
 			<div class="error">{{error}}</div>
-			<input type="submit">
+			<br>
+			<input type="submit" >
 		</form>
 
 	</body>
