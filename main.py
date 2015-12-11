@@ -4,31 +4,12 @@
 import webapp2
 import os
 import jinja2
+import DbDefenitions
+import Helper
 
 from google.appengine.ext import db
 
-template_dir = os.path.join(os.path.dirname(__file__),'templates')
-jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir),
-																autoescape=True)
-
-
-class BlogEntry(db.Model):
-	subject = db.StringProperty(required=True)
-	blog = db.TextProperty(required=True)
-	created = db.DateTimeProperty(auto_now_add=True)
-
-class Handler(webapp2.RequestHandler):
-	def write(self, *a, **kwArgs):
-		self.response.write(*a, **kwArgs)
-
-	def render_str(self, template, **params):
-		t = jinja_env.get_template(template)
-		return t.render(params)
-
-	def renderIt(self, template, **kwArgs):
-		self.write(self.render_str(template, **kwArgs))
-
-class NewPostHandler(Handler):
+class NewPostHandler(Helper.Handler):
 	def get(self):
 		self.renderIt("newpost.html")
 
@@ -40,7 +21,7 @@ class NewPostHandler(Handler):
 			error = "subject and content, please!"
 			self.renderIt("newpost.html", error=error, subject=theSubject, content=thePost)
 		else:
-			post = BlogEntry(subject=theSubject, blog=thePost)
+			post = DbDefenitions.BlogEntry(subject=theSubject, blog=thePost)
 
 			post.put()
 			
@@ -49,16 +30,16 @@ class NewPostHandler(Handler):
 
 			self.redirect("/blog/%s" % theBlogId)
 
-class PostHandler(Handler):
+class PostFetchHandler(Helper.Handler):
 	def get(self, post_id):
-		p = BlogEntry.get_by_id(long(post_id))
+		p = DbDefenitions.BlogEntry.get_by_id(long(post_id))
 		if p:
 			posts =[p]
 			self.renderIt("mainpage.html", posts=posts)
 
 
 
-class MainPageHandler(Handler):
+class MainPageHandler(Helper.Handler):
 	def get(self):
 		posts = db.GqlQuery("SELECT * FROM BlogEntry" 
 							" ORDER BY created DESC")
@@ -69,5 +50,5 @@ class MainPageHandler(Handler):
 app = webapp2.WSGIApplication([
 	('/blog/newpost', NewPostHandler),
 	('/blog', MainPageHandler),
-	('/blog/([0-9]+)', PostHandler)
+	('/blog/([0-9]+)', PostFetchHandler)
 ], debug=True)
